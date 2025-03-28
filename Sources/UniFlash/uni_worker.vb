@@ -8,6 +8,8 @@ Module uni_worker
     Public foldersave As String = ""
     Public PortCom As String = ""
     Public StringXML As String = ""
+    Public PACPartitionsTableXMLFile As String = "../../../PAC_partitions.xml"
+    Public PhonePartitionsTableXMLFile As String = "../../../Phone_partitions.xml"
     Public WorkerMethod As String = ""
     Public USBMethod As String = "Diag Channel"
     Public Logs As String = ""
@@ -40,6 +42,13 @@ Module uni_worker
                 RichLogs("Reboot" & vbTab & vbTab & ": OK ", Color.Black, True, True)
                 send_reset()
             End If
+
+        ElseIf WorkerMethod = "Save PACPartitionsTable" Then
+            '' If Not Directory.Exists(Path.GetDirectoryName(Main.SharedUI.TextBoxSaveToPartitionsTableFiile.Text)) Then
+            ''      Directory.CreateDirectory(Path.GetDirectoryName(Main.SharedUI.TextBoxSaveToPartitionsTableFiile.Text))
+            ''  End If
+            ''Dim input() As String = {Main.SharedUI.TextBoxSaveToPartitionsTableFiile.Text, Path.GetDirectoryName(Main.SharedUI.TextBoxSaveToPartitionsTableFiile.Text)}
+            File.WriteAllText(uni_worker.PACPartitionsTableXMLFile, uni_worker.StringXML)
 
         ElseIf WorkerMethod = "Read Partition" Then
             GetReadPartition()
@@ -158,7 +167,7 @@ Module uni_worker
                     send_exec()
                     RichLogs("Done", Color.Purple, True, True)
 
-                    send_connect()
+                    Send_connect()
 
                     If Main.SharedUI.CkFDL2.Checked Then
                         ProcessBar2(100, 200)
@@ -172,11 +181,11 @@ Module uni_worker
 #Region "send_file C++ FDL2"
                 If Main.SharedUI.CkFDL2.Checked Then
 
-                    send_connect()
+                    Send_connect()
 
                     set_chksum_type("add")
 
-                    send_start_fdl(Convert.ToInt32(Main.SharedUI.TxtFDL2Address.Text.Replace("0x", ""), 16), fdl2_len)
+                    Send_start_fdl(Convert.ToInt32(Main.SharedUI.TxtFDL2Address.Text.Replace("0x", ""), 16), fdl2_len)
 
                     RichLogs("Sending FDL2    : ", Color.Black, True, False)
 
@@ -185,18 +194,18 @@ Module uni_worker
                         ProcessBar1(fdl2_skip, fdl2.Length)
 
                         If fdl2_len > MIDST_SIZE Then
-                            send_midst(TakeByte(fdl2, fdl2_skip, MIDST_SIZE))
+                            Send_midst(TakeByte(fdl2, fdl2_skip, MIDST_SIZE))
                             fdl2_len -= MIDST_SIZE
                             fdl2_skip += MIDST_SIZE
                         Else
-                            send_midst(TakeByte(fdl2, fdl2_skip, fdl2_len))
+                            Send_midst(TakeByte(fdl2, fdl2_skip, fdl2_len))
                             fdl2_len = 0
                         End If
 
 
                     End While
 
-                    send_end()
+                    Send_end()
                     send_exec()
 
                     RichLogs("Done", Color.Purple, True, True)
@@ -251,6 +260,7 @@ Module uni_worker
     Public Sub FlashPartition(partition As String, startsector As ULong, endsector As ULong, size As String, location As String)
 
         If USBMethod = "Diag Channel" Then
+            RichLogs("Connecting to Port: " & PortCom & " : ", Color.Blue, False, True) 'Test Arvind Added for debug info
             DiagConnect(PortCom)
         End If
 
@@ -261,8 +271,20 @@ Module uni_worker
         RichLogs("Flashing Partition " & partition & " : ", Color.Black, True, False)
 
         set_chksum_type("add")
+        Dim LogMsg As String = "Transcode could not be disabled"
+        If (Send_disable_transcode()) Then
+            LogMsg = "Transcode disabled."
+        End If
+        RichLogs(LogMsg, Color.Blue, False, True) 'Test Arvind Added for debug info
 
-        send_enable_flash()
+        LogMsg = "Flashing could not be enabled"
+        If (Send_enable_flash()) Then
+            LogMsg = "Flashing enabled."
+        End If
+        RichLogs(LogMsg, Color.Blue, False, True) 'Test Arvind Added for debug info
+
+
+        ErasePartition(partition, size) 'Test Arvind Added for testing
 
         If File.Exists(location) Then
             PartitionData = File.ReadAllBytes(location)
@@ -271,13 +293,13 @@ Module uni_worker
                 RichLogs("Failed! File size overflow.", Color.Red, True, True)
                 Return
             Else
-                send_start_flash(partition, Nothing, PartitionData_len)
+                Send_start_flash(partition, Nothing, PartitionData_len)
             End If
         Else
             PartitionData = PACExtractor.ExtractPacData(startsector, endsector)
             PartitionData_len = PartitionData.Length
             Delay(2)
-            send_start_flash(partition, size)
+            Send_start_flash(partition, size)
         End If
 
         While (PartitionData_len > 0)
@@ -285,12 +307,12 @@ Module uni_worker
             ProcessBar1(PartitionData_writen, PartitionData_len)
 
             If PartitionData_len > 4096 Then
-                send_midst(TakeByte(PartitionData, PartitionData_writen, 4096))
+                Send_midst(TakeByte(PartitionData, PartitionData_writen, 4096))
 
                 PartitionData_len -= 4096
                 PartitionData_writen += 4096
             Else
-                send_midst(TakeByte(PartitionData, PartitionData_writen, PartitionData_len))
+                Send_midst(TakeByte(PartitionData, PartitionData_writen, PartitionData_len))
 
                 PartitionData_len = 0
             End If
@@ -360,7 +382,7 @@ Module uni_worker
                 Do
                     fileOffset = bytesRead * i
 
-                    send_read_midst(bytesRead, fileOffset)
+                    Send_read_midst(bytesRead, fileOffset)
 
                     buffer = DataReadFlash
 

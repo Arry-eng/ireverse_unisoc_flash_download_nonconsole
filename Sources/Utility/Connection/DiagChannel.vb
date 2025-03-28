@@ -6,7 +6,9 @@ Module DiagChannel
 
     Dim logUtilPtr As IntPtr
     Dim hDiagPhone As SP_HANDLE
-    Public ChannelBuffer As Byte() = New Byte(1024) {}
+    Public _READ_BUFFER_SIZE As ULong = 1024
+    Public _WRITE_BUFFER_SIZE As ULong = 4096
+    Public ChannelBuffer As Byte() = New Byte(_READ_BUFFER_SIZE) {}
 
     Public Sub DiagConnect(PortCom As String)
         hDiagPhone = SP_CreatePhone(logUtilPtr)
@@ -36,7 +38,7 @@ Module DiagChannel
         Do
             If Not Main.SharedUI.ReceiverDataWorker.CancellationPending Then
                 If Not isPartitionOperation Then
-                    SP_Read(hDiagPhone, ChannelBuffer, 1024)
+                    SP_Read(hDiagPhone, ChannelBuffer, _READ_BUFFER_SIZE)
                 End If
             Else
                 Exit Do
@@ -53,20 +55,20 @@ Module DiagChannel
         Dim fileOffset As Long = 0
 
         Do
-            fileOffset = bytesRead * i
+            fileOffset = bytesRead * i ''Todo - Arvind Whats???
 
 
             If fileOffset = BYTES_TO_READ - bytesRead Then
-                send_read_midst(bytesRead, fileOffset)
+                Send_read_midst(bytesRead, fileOffset)
                 ProcessBar1(100)
                 send_read_end()
                 Exit Do
             End If
 
-            send_read_midst(bytesRead, fileOffset)
+            Send_read_midst(bytesRead, fileOffset)
             ProcessBar1(fileOffset, BYTES_TO_READ)
-            fileOffset += bytesRead
-            i += 1
+            fileOffset += bytesRead ''Todo - Arvind Whats???
+            i += 1 ''Todo - Arvind Whats???
         Loop
 
         RichLogs("OK", Color.Lime, True, True)
@@ -96,13 +98,13 @@ Module DiagChannel
 
 
             If fileOffset = BYTES_TO_READ - bytesRead Then
-                send_read_midst(bytesRead, fileOffset)
+                Send_read_midst(bytesRead, fileOffset)
                 ProcessBar1(100)
                 send_read_end()
                 Exit Do
             End If
 
-            send_read_midst(bytesRead, fileOffset)
+            Send_read_midst(bytesRead, fileOffset)
             ProcessBar1(fileOffset, BYTES_TO_READ)
             fileOffset += bytesRead
             i += 1

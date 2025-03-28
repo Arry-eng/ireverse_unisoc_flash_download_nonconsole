@@ -25,9 +25,10 @@
         End If
     End Sub
     Public Sub Delay(dblSecs As Double)
-        Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(0.0000115740740740741)
-        Dim dateTime As Date = Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(0.0000115740740740741)
-        Dim dateTime1 As Date = dateTime.AddSeconds(dblSecs)
+        'Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(0.0000115740740740741) 'Test Arvind Commented as seemed un-necessary
+        'Dim dateTime As Date = Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(0.0000115740740740741) 'Test Arvind Commented as seemed un-necessary
+        'Dim dateTime1 As Date = dateTime.AddSeconds(dblSecs)'Test Arvind Commented as seemed un-necessary
+        Dim dateTime1 As Date = Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(dblSecs / 100) 'Test Arvind reduced wait to one hundreath for feature phones as they respond immediately
         While Date.Compare(Microsoft.VisualBasic.DateAndTime.Now, dateTime1) <= 0
             Windows.Forms.Application.DoEvents()
         End While

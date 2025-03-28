@@ -1,0 +1,49 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+UniFlash
+</name>
+</assembly>
+<members>
+<member name="T:UniFlash.My.Resources.Resources">
+<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member>
+<member name="P:UniFlash.My.Resources.Resources.ResourceManager">
+<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member>
+<member name="P:UniFlash.My.Resources.Resources.Culture">
+<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member>
+<member name="M:UniFlash.Main.FlashText(System.Int32,System.Action{System.Windows.Forms.Control},System.Windows.Forms.Control)">
+ <summary>
+ Flashes the text of a control by toggling its color Red and Blue
+ </summary>
+ <param name="flashInterval">The interval in milliseconds to flash the text</param>
+ <param name="handler">The function to handle the control's text color</param>
+ <param name="control">The control to flash</param>
+ <remarks>Requires a Timer object to be created and initialized</remarks>
+ <exception cref="T:System.ArgumentException">Thrown when the flash interval is less than or equal to 0</exception>
+ <exception cref="T:System.ArgumentNullException">Thrown when the handler function or control is Nothing</exception>
+ <exception cref="T:System.InvalidOperationException">Thrown when the Timer object is not initialized</exception>
+ <exception cref="T:System.Exception">Thrown when an unknown error occurs</exception>
+</member>
+<member name="M:UniFlash.Main.FlashErrorMsg(System.String)">
+ <summary>
+ Flashes an error message in the LabelErrorMsg control
+ </summary>
+ <param name="errorMessage">The error message to display</param>
+ <remarks>Requires the LabelErrorMsg control to be created and initialized</remarks>
+ <exception cref="T:System.ArgumentNullException">Thrown when the error message is empty or Nothing</exception>
+ <exception cref="T:System.InvalidOperationException">Thrown when the LabelErrorMsg control is not initialized</exception>
+ <exception cref="T:System.Exception">Thrown when an unknown error occurs</exception>
+</member>
+</members>
+</doc>
