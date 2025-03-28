@@ -40,7 +40,7 @@
             'Console.WriteLine("CRC16 Checksum    : " & c.ToString("X4"))
             Return c
         ElseIf chksum_type = CHKSUM_TYPE_ADD Then
-            Dim c As UInteger = Checksum.SpdChecksum(0, parse_reverse(data), data.Length, CHK_ORIG)
+            Dim c As UInteger = Checksum.SpdChecksum(0, Parse_reverse(data), data.Length, CHK_ORIG)
             'Console.WriteLine("SPD Checksum      : " & c.ToString("X4"))
             Return c
         Else
@@ -98,7 +98,7 @@
     End Function
 
     Public Function SpdChecksum(crc As UInteger, src As Byte(), len As Integer, final As Integer) As UInteger
-        Dim s As Byte() = parse_reverse(src)
+        Dim s As Byte() = Parse_reverse(src)
 
         While len > 1
             crc += (CUInt(s(1)) << 8) Or CUInt(s(0))

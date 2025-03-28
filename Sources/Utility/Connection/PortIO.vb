@@ -16,8 +16,8 @@ Public Class PortIO
         serialPort.Handshake = Handshake.None
         serialPort.DataBits = 8
         serialPort.StopBits = StopBits.One
-        serialPort.ReadBufferSize = 65536
-        serialPort.WriteBufferSize = 65536
+        serialPort.ReadBufferSize = 2048 '65536
+        serialPort.WriteBufferSize = 4096 '65536
         serialPort.Open()
         serialPort.RtsEnable = True
         serialPort.DtrEnable = True
