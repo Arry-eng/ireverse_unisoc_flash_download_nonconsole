@@ -63,7 +63,9 @@ Public Module LibUSBPort
 
             SetTimer(WaktuCari - counter)
 
+#Disable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
             Dim allDevices = devices.AllDevices
+#Enable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
 
             If allDevices.Any(Function(x) x.Vid = USB_VID And x.Pid = USB_PID) Then
 

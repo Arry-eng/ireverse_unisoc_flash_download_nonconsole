@@ -5,7 +5,7 @@ Imports UniFlash.PortIO
 Module uni
     Private Const SPRD_DEFAULT_TIMEOUT As Integer = 2000
 
-    Public MIDST_SIZE As Integer = 528
+    Public MIDST_SIZE As Integer = 528 ''1056 ''2116 ''528 - Test -Arry-eng Recomended HDLC
     Public logs_on As Boolean = True 'Test - Arvind Changed From False 
 
     Private Function Translate(data As Byte()) As Byte()
@@ -63,14 +63,17 @@ Module uni
 
         Dim indexes As New List(Of Integer)()
         Dim i As Integer = 0
+        RichLogs("Extracting received Data........", Color.Black, False, True)
         While i < data.Length
             Dim index = FindSequence(data, i, startSequence)
             If index = -1 Then
-                Exit While
+                Exit While ''Need to put a warning message somewhere 
+                Debug.Assert(i = 0, "Warning:Function ExtractData: start sequence is missing in data")
             End If
             indexes.Add(index)
             i = index + startSequence.Length
         End While
+        Debug.Print("Info:Function ExtractData:" & indexes.Count & " start sequence found in data")
 
         For j As Integer = 0 To indexes.Count - 1
             Dim startIndex As Integer = indexes(j) + startSequence.Length + 2
@@ -101,7 +104,7 @@ Module uni
             End If
         End While
         Dim DataClear As Byte() = translate.ToArray()
-        Return TakeByte(DataClear, 0, DataClear.Length - 11)
+        Return TakeByte(DataClear, 0, DataClear.Length - 11) ''
     End Function
 
     Private Function FindSequence(data As Byte(), startIndex As Integer, sequence As Byte()) As Integer
@@ -179,10 +182,46 @@ Module uni
         Dim data As Byte() = detranslatedPacket
         Dim chksum As Integer = BitConverter.ToUInt16(detranslatedPacket, detranslatedPacket.Length - 2)
         Dim chksumMatch As Boolean = (calc_chksum(detranslatedPacket.Take(detranslatedPacket.Length - 2).ToArray()) = chksum)
+        RichLogs("Parsed received packet...Command:" & command & " Length:" & length & " Data:" & BitConverter.ToString(data), Color.Black, False, True)
         Return New Tuple(Of Integer, Byte(), Boolean)(command, data, chksumMatch)
     End Function
 
+    Public Function SendReceive_data(data As Byte(), Optional timeout As Integer = Nothing) As Integer
+        Console.WriteLine("Sending Send_data as byte..............")
+        RichLogs("fn:SendReceive_data Sending Send_data as byte..............", Color.Black, False, True)
+        Dim retVal As Integer = 0
+        If timeout = Nothing Then
+            timeout = SPRD_DEFAULT_TIMEOUT
+        End If
+        Dim returnFlag As Boolean = False
+        Try
+
+            If USBMethod = "libusb-win32" Then
+                USBPortReadWrite(data)
+            ElseIf USBMethod = "Serial Port" Then
+                PortWrite(data)
+            ElseIf USBMethod = "Diag Channel" Then
+                retVal = SendReceiveDiag(data)
+                Console.WriteLine("Fn:SendReceiveDiag returned.....:" & retVal)
+                RichLogs("Fn:SendReceiveDiag returned.....:" & retVal, Color.Black, False, True)
+            End If
+
+            returnFlag = Read_ack()
+
+        Catch ex As Exception
+            RichLogs(ex.ToString, Color.Red, False, True)
+            ''CMD_READ_LOG = &H35 We have to read the logs here to find the error // Todo Arvind
+            returnFlag = False
+
+        End Try
+
+        Return retVal
+
+    End Function
+
+
     Public Function Send_data(data As Byte(), Optional timeout As Integer = Nothing) As Boolean
+        Console.WriteLine("Sending Send_data as byte..............")
         If timeout = Nothing Then
             timeout = SPRD_DEFAULT_TIMEOUT
         End If
@@ -211,21 +250,32 @@ Module uni
     End Function
 
     Public Function Send_checkbaud() As Boolean
+        Console.WriteLine("Sending Send_checkbaud..............")
         Return Send_data(Generate_packet(BSL.CMD_CHECK_BAUD))
     End Function
 
     Public Function Send_connect() As Boolean
+        Console.WriteLine("Sending Send_connec..............")
         Return Send_data(Generate_packet(BSL.CMD_CONNECT))
     End Function
 
+    Public Function Send_Self_Refresh() As Boolean
+        Console.WriteLine("Sending Self_refresh..............")
+        Return Send_data(Generate_packet(BSL.CMD_SELF_REFRESH))
+    End Function
+
+
     Public Function Send_enable_flash() As Boolean
+        Console.WriteLine("Sending Send_enable_flash..............")
         Return Send_data(Generate_packet(BSL.CMD_ENABLE_WRITE_FLASH))
     End Function
     Public Function Send_disable_transcode() As Boolean
+        Console.WriteLine("Sending Send_disable_transcode..............")
         Return Send_data(Generate_packet(BSL.CMD_DISABLE_TRANSCODE))
     End Function
 
     Public Function Send_start_fdl(addr As Integer, total_size As Integer) As Boolean
+        Console.WriteLine("Sending Send_start_fdl..............")
         Return Send_data(Generate_packet(
                                                  BSL.CMD_START_DATA,
                                                  Parse_reverse(BitConverter.GetBytes(total_size).Concat(BitConverter.GetBytes(addr)).ToArray())
@@ -234,6 +284,7 @@ Module uni
     End Function
 
     Public Function Send_start_flash(Partition As String, Optional size As String = "1M", Optional partitionsize As ULong = 0) As Boolean
+        Console.WriteLine("Sending Send_start_flash..............")
         Dim asize As ULong
 
         If partitionsize > 0 Then
@@ -270,20 +321,36 @@ Module uni
     End Function
 
     Public Function Send_midst(data As Byte()) As Boolean
+        Console.WriteLine("Sending Send_midst..............")
         isPartitionOperation = True
         Return Send_data(Generate_packet(BSL.CMD_MIDST_DATA, data))
     End Function
 
     Public Function Send_end() As Boolean
+        Console.WriteLine("Sending Send_end..............")
         isPartitionOperation = False
         Return Send_data(Generate_packet(BSL.CMD_END_DATA))
     End Function
 
     Public Function Send_exec() As Boolean
+        Console.WriteLine("Sending Send_exec..............")
         Return Send_data(Generate_packet(BSL.CMD_EXEC_DATA))
     End Function
 
+    Friend Function Send_readPartitionsTableToFile(filename As String) As Long
+        Console.WriteLine("Sending Send_readPartitionsTable..............")
+        RichLogs("Sending Send_readPartitionsTable.....", Color.Black, True, True)
+        Dim Tosend As Byte() = Generate_packet(BSL.CMD_READ_PARTITION)
+        ''Send_readPartitionsTable = SendReceive_data(Tosend)
+        Dim Size As Long = SendReceive_data(Tosend)
+
+        '' Console.WriteLine(" ")
+        ''Console.WriteLine("Sent ReadPartitionTable Command Size: " & Tosend.LongLength & " Data:" & BitConverter.ToString(Tosend).Replace("-", " "))
+    End Function
+
     Public Function Send_read(Partition As String, size As String) As Boolean
+        Console.WriteLine("Sending read partition data..............")
+
         Dim asize As ULong = StrToSize(size)
 
         Dim Taken As Byte() = BitConverter.GetBytes(asize)
@@ -310,7 +377,7 @@ Module uni
 
         Dim Tosend As Byte() = Generate_packet(BSL.CMD_READ_START, resultBytes)
 
-        Console.WriteLine(" ")
+        ''Console.WriteLine(" ")
         Console.WriteLine(StrToSize(size) & " " & BitConverter.ToString(byteC).Replace("-", " "))
         Console.WriteLine("Read Partition Data : " & BitConverter.ToString(Tosend).Replace("-", " "))
 
@@ -319,6 +386,8 @@ Module uni
     End Function
 
     Public Function Send_read_midst(total As Integer, len As Integer) As Boolean
+        Console.WriteLine("Sending Send_read_midst..............")
+        RichLogs("Sending Send_read_midst.........for len:" & len & " of:" & total, Color.Black, False, True)
         isPartitionOperation = True
         Dim a As Byte() = BitConverter.GetBytes(total)
         Dim b As Byte() = BitConverter.GetBytes(len)
@@ -329,11 +398,13 @@ Module uni
     End Function
 
     Public Function Send_read_end() As Boolean
+        Console.WriteLine("Sending Send_read_end..............")
         isPartitionOperation = False
-        Return Send_data(Generate_packet(BSL.CMD_READ_END))
+        ''Return Send_data(Generate_packet(BSL.CMD_READ_END))
     End Function
 
     Public Function Send_erase(Partition As String, Optional size As String = "1M", Optional partitionsize As ULong = 0) As Boolean
+        Console.WriteLine("Sending Send_erase..............")
         Dim asize As ULong
 
         If partitionsize > 0 Then
@@ -374,14 +445,17 @@ Module uni
     End Function
 
     Public Function Send_reset() As Boolean
+        Console.WriteLine("Sending Send_reset..............")
         Return Send_data(Generate_packet(BSL.CMD_NORMAL_RESET))
     End Function
 
     Public Function Send_keepcharge() As Boolean
+        Console.WriteLine("Sending Send_keepcharge..............")
         Return Send_data(Generate_packet(BSL.CMD_KEEP_CHARGE))
     End Function
 
     Public Function Read_ack() As Boolean
+        Console.WriteLine("Reading Ack data in Read_ack..............")
         Dim resp As Byte() = New Byte() {}
 
         If USBMethod = "libusb-win32" Then
@@ -395,7 +469,9 @@ Module uni
 
         If resp.Length > 0 Then
 
-            Dim str As String = BitConverter.ToString(resp).Replace("-", " ")
+            Dim resStr As String = BitConverter.ToString(resp)
+            RichLogs("fn:Read_ack Response received DataLength:" & resStr.Length, Color.DarkRed, True, True)
+            Dim str As String = resStr.Replace("-", " ")
 
             Dim tuple As Tuple(Of Integer, Byte(), Boolean) = Parse_packet(resp)
             Dim response As Integer = tuple.Item1
@@ -439,9 +515,12 @@ Module uni
                 End If
 
             ElseIf response = BSL.REP_ACK Then
-                'Console.WriteLine("Response : ACK Received")
+                Console.WriteLine("Response : ACK Received")
             ElseIf response = BSL.REP_READ_FLASH Then
-                'Console.WriteLine("Response : Reading Flash Data")
+                Console.WriteLine("Response : Reading Flash Data")
+            ElseIf response = BSL.REP_READ_PARTITION Then
+                Console.WriteLine("Response : Reading PartitionTable Data")
+                RichLogs("fn:Read_ack BSL.REP_READ_PARTITION:Code" & response.ToString, Color.DarkRed, True, True)
             ElseIf response = BSL.REP_VERIFY_ERROR Then
                 RichLogs("Response" & vbTab & ": Verify Error", Color.DarkRed, True, True)
                 Return False
@@ -451,7 +530,7 @@ Module uni
                 RichLogs("Response" & vbTab & ": Download Size Error!", Color.DarkRed, True, True)
                 Return False
             Else
-                RichLogs("-Response Code" & vbTab & ":" & response.ToString, Color.Red, False, False)
+                RichLogs("-Response Code:" & response, Color.Red, False, False)
             End If
 
         End If
@@ -459,27 +538,53 @@ Module uni
     End Function
 
     Public Function TakeByte(source As Byte(), start As Integer, length As Integer) As Byte()
-        Return (From element In source Skip start Take length).ToArray
+#If DEBUG Then
+        Console.WriteLine("Fn:TakeByte input-Byte():" & BitConverter.ToString(source) & " StartIndex: " & start & " Length:" & length)
+#End If
+        TakeByte = (From element In source Skip start Take length).ToArray
+        ''Return (From element In source Skip start Take length).ToArray
+#If DEBUG Then
+        Console.WriteLine("Fn:TakeByte return-Byte():" & BitConverter.ToString(TakeByte))
+#End If
     End Function
 
     Public Function Parse_reverse(data As Byte()) As Byte()
+#If DEBUG Then
+        '' Console.WriteLine("Fn:Parse_reverse input-Byte():" & BitConverter.ToString(data))
+#End If
         Dim a As String = BitConverter.ToString(data).Replace("-", " ")
         Dim b As Byte() = StringToByteArray(ReverseBytes(a))
+#If DEBUG Then
+        '' Console.WriteLine("Fn:Parse_reverse return-Byte():" & BitConverter.ToString(b))
+#End If
         Return b
     End Function
 
     Public Function ReverseBytes(ByVal value As String) As String
+#If DEBUG Then
+        ''Console.WriteLine("Fn:ReverseBytes input-String:" & value)
+#End If
         Dim reversed As String = ""
         Dim val As String = value.Replace(" ", "").Replace("-", "")
         For i As Integer = val.Length - 2 To 0 Step -2
             reversed += val.Substring(i, 2)
         Next
+#If DEBUG Then
+        '' Console.WriteLine("Fn:ReverseBytes return-String:" & reversed)
+#End If
         Return reversed
     End Function
 
     Public Function StringToByteArray(ByVal hex As String) As Byte()
+#If DEBUG Then
+        ''Console.WriteLine("Fn:StringToByteArray input-String:" & hex)
+#End If
         hex = hex.Replace(" ", "")
-        Return Enumerable.Range(0, hex.Length).Where(Function(x) x Mod 2 = 0).[Select](Function(x) Convert.ToByte(hex.Substring(x, 2), 16)).ToArray()
+        StringToByteArray = Enumerable.Range(0, hex.Length).Where(Function(x) x Mod 2 = 0).[Select](Function(x) Convert.ToByte(hex.Substring(x, 2), 16)).ToArray()
+#If DEBUG Then
+        ''Console.WriteLine("Fn:StringToByteArray return-Byte():" & BitConverter.ToString(StringToByteArray))
+#End If
+
     End Function
 
 End Module

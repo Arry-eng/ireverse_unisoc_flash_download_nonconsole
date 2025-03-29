@@ -1,0 +1,11 @@
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\bin\Debug\TestUni.exe.config
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\bin\Debug\TestUni.exe
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\bin\Debug\TestUni.pdb
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\bin\Debug\TestUni.xml
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\obj\Debug\TestUni.vbproj.AssemblyReference.cache
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\obj\Debug\TestUni.Resources.resources
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\obj\Debug\TestUni.vbproj.GenerateResource.cache
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\obj\Debug\TestUni.vbproj.CoreCompileInputs.cache
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\obj\Debug\TestUni.exe
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\obj\Debug\TestUni.xml
+C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\test\TestUni\TestUni\obj\Debug\TestUni.pdb

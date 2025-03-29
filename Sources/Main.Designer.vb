@@ -29,6 +29,7 @@ Partial Class Main
 		Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
 		Me.ProgressBar2 = New System.Windows.Forms.ProgressBar()
 		Me.GroupBoxFlash = New System.Windows.Forms.GroupBox()
+		Me.LabelErrorMsg = New System.Windows.Forms.Label()
 		Me.BtnSavePhonePartitionsTable = New System.Windows.Forms.Button()
 		Me.LabelSavePhonePartitionsTable = New System.Windows.Forms.Label()
 		Me.BtnBrowsePhonePartitionsTable = New System.Windows.Forms.Button()
@@ -43,7 +44,6 @@ Partial Class Main
 		Me.BtnFDL2 = New System.Windows.Forms.Button()
 		Me.BtnFDL1 = New System.Windows.Forms.Button()
 		Me.CkKeepCharge = New System.Windows.Forms.CheckBox()
-		Me.CkAutoReboot = New System.Windows.Forms.CheckBox()
 		Me.Label4 = New System.Windows.Forms.Label()
 		Me.Label2 = New System.Windows.Forms.Label()
 		Me.Label3 = New System.Windows.Forms.Label()
@@ -52,7 +52,6 @@ Partial Class Main
 		Me.BtnErase = New System.Windows.Forms.Button()
 		Me.BtnReadPartition = New System.Windows.Forms.Button()
 		Me.TxtFDL2Address = New System.Windows.Forms.TextBox()
-		Me.TxtPacFirmware = New System.Windows.Forms.TextBox()
 		Me.TxtFDL2 = New System.Windows.Forms.TextBox()
 		Me.TxtFDL1Address = New System.Windows.Forms.TextBox()
 		Me.TxtFDL1 = New System.Windows.Forms.TextBox()
@@ -76,7 +75,9 @@ Partial Class Main
 		Me.Rdlibusb = New System.Windows.Forms.RadioButton()
 		Me.Label7 = New System.Windows.Forms.Label()
 		Me.ReceiverDataWorker = New System.ComponentModel.BackgroundWorker()
-		Me.LabelErrorMsg = New System.Windows.Forms.Label()
+		Me.CheckBoxErasePartitionBeforeFlashing = New System.Windows.Forms.CheckBox()
+		Me.CkAutoReboot = New System.Windows.Forms.CheckBox()
+		Me.TxtPacFirmware = New System.Windows.Forms.TextBox()
 		Me.GroupBoxFlash.SuspendLayout()
 		Me.TabControl1.SuspendLayout()
 		Me.TabPage1.SuspendLayout()
@@ -136,6 +137,7 @@ Partial Class Main
 		'
 		'GroupBoxFlash
 		'
+		Me.GroupBoxFlash.Controls.Add(Me.CheckBoxErasePartitionBeforeFlashing)
 		Me.GroupBoxFlash.Controls.Add(Me.LabelErrorMsg)
 		Me.GroupBoxFlash.Controls.Add(Me.BtnSavePhonePartitionsTable)
 		Me.GroupBoxFlash.Controls.Add(Me.LabelSavePhonePartitionsTable)
@@ -171,8 +173,16 @@ Partial Class Main
 		Me.GroupBoxFlash.TabIndex = 9
 		Me.GroupBoxFlash.TabStop = False
 		'
+		'LabelErrorMsg
+		'
+		Me.LabelErrorMsg.Location = New System.Drawing.Point(320, 102)
+		Me.LabelErrorMsg.Name = "LabelErrorMsg"
+		Me.LabelErrorMsg.Size = New System.Drawing.Size(487, 30)
+		Me.LabelErrorMsg.TabIndex = 30
+		'
 		'BtnSavePhonePartitionsTable
 		'
+		Me.BtnSavePhonePartitionsTable.Enabled = False
 		Me.BtnSavePhonePartitionsTable.Location = New System.Drawing.Point(877, 58)
 		Me.BtnSavePhonePartitionsTable.Name = "BtnSavePhonePartitionsTable"
 		Me.BtnSavePhonePartitionsTable.Size = New System.Drawing.Size(107, 45)
@@ -246,7 +256,7 @@ Partial Class Main
 		Me.CkFDL2.AutoSize = True
 		Me.CkFDL2.Checked = True
 		Me.CkFDL2.CheckState = System.Windows.Forms.CheckState.Checked
-		Me.CkFDL2.Location = New System.Drawing.Point(191, 99)
+		Me.CkFDL2.Location = New System.Drawing.Point(114, 99)
 		Me.CkFDL2.Name = "CkFDL2"
 		Me.CkFDL2.Size = New System.Drawing.Size(15, 14)
 		Me.CkFDL2.TabIndex = 18
@@ -257,7 +267,7 @@ Partial Class Main
 		Me.CkFDL1.AutoSize = True
 		Me.CkFDL1.Checked = True
 		Me.CkFDL1.CheckState = System.Windows.Forms.CheckState.Checked
-		Me.CkFDL1.Location = New System.Drawing.Point(91, 101)
+		Me.CkFDL1.Location = New System.Drawing.Point(14, 101)
 		Me.CkFDL1.Name = "CkFDL1"
 		Me.CkFDL1.Size = New System.Drawing.Size(15, 14)
 		Me.CkFDL1.TabIndex = 18
@@ -295,29 +305,17 @@ Partial Class Main
 		Me.CkKeepCharge.AutoSize = True
 		Me.CkKeepCharge.Checked = True
 		Me.CkKeepCharge.CheckState = System.Windows.Forms.CheckState.Checked
-		Me.CkKeepCharge.Location = New System.Drawing.Point(306, 119)
+		Me.CkKeepCharge.Location = New System.Drawing.Point(218, 119)
 		Me.CkKeepCharge.Name = "CkKeepCharge"
 		Me.CkKeepCharge.Size = New System.Drawing.Size(88, 17)
 		Me.CkKeepCharge.TabIndex = 16
 		Me.CkKeepCharge.Text = "Keep Charge"
 		Me.CkKeepCharge.UseVisualStyleBackColor = True
 		'
-		'CkAutoReboot
-		'
-		Me.CkAutoReboot.AutoSize = True
-		Me.CkAutoReboot.Checked = True
-		Me.CkAutoReboot.CheckState = System.Windows.Forms.CheckState.Checked
-		Me.CkAutoReboot.Location = New System.Drawing.Point(306, 102)
-		Me.CkAutoReboot.Name = "CkAutoReboot"
-		Me.CkAutoReboot.Size = New System.Drawing.Size(86, 17)
-		Me.CkAutoReboot.TabIndex = 16
-		Me.CkAutoReboot.Text = "Auto Reboot"
-		Me.CkAutoReboot.UseVisualStyleBackColor = True
-		'
 		'Label4
 		'
 		Me.Label4.AutoSize = True
-		Me.Label4.Location = New System.Drawing.Point(208, 100)
+		Me.Label4.Location = New System.Drawing.Point(131, 100)
 		Me.Label4.Name = "Label4"
 		Me.Label4.Size = New System.Drawing.Size(74, 13)
 		Me.Label4.TabIndex = 12
@@ -326,7 +324,7 @@ Partial Class Main
 		'Label2
 		'
 		Me.Label2.AutoSize = True
-		Me.Label2.Location = New System.Drawing.Point(110, 102)
+		Me.Label2.Location = New System.Drawing.Point(33, 102)
 		Me.Label2.Name = "Label2"
 		Me.Label2.Size = New System.Drawing.Size(74, 13)
 		Me.Label2.TabIndex = 13
@@ -379,18 +377,11 @@ Partial Class Main
 		'
 		'TxtFDL2Address
 		'
-		Me.TxtFDL2Address.Location = New System.Drawing.Point(188, 116)
+		Me.TxtFDL2Address.Location = New System.Drawing.Point(111, 116)
 		Me.TxtFDL2Address.Name = "TxtFDL2Address"
 		Me.TxtFDL2Address.Size = New System.Drawing.Size(94, 20)
 		Me.TxtFDL2Address.TabIndex = 8
 		Me.TxtFDL2Address.Text = "0x9F000000"
-		'
-		'TxtPacFirmware
-		'
-		Me.TxtPacFirmware.Location = New System.Drawing.Point(88, 71)
-		Me.TxtPacFirmware.Name = "TxtPacFirmware"
-		Me.TxtPacFirmware.Size = New System.Drawing.Size(328, 20)
-		Me.TxtPacFirmware.TabIndex = 9
 		'
 		'TxtFDL2
 		'
@@ -402,7 +393,7 @@ Partial Class Main
 		'
 		'TxtFDL1Address
 		'
-		Me.TxtFDL1Address.Location = New System.Drawing.Point(88, 116)
+		Me.TxtFDL1Address.Location = New System.Drawing.Point(11, 116)
 		Me.TxtFDL1Address.Name = "TxtFDL1Address"
 		Me.TxtFDL1Address.Size = New System.Drawing.Size(94, 20)
 		Me.TxtFDL1Address.TabIndex = 10
@@ -598,12 +589,39 @@ Partial Class Main
 		Me.ReceiverDataWorker.WorkerReportsProgress = True
 		Me.ReceiverDataWorker.WorkerSupportsCancellation = True
 		'
-		'LabelErrorMsg
+		'CheckBoxErasePartitionBeforeFlashing
 		'
-		Me.LabelErrorMsg.Location = New System.Drawing.Point(421, 99)
-		Me.LabelErrorMsg.Name = "LabelErrorMsg"
-		Me.LabelErrorMsg.Size = New System.Drawing.Size(450, 30)
-		Me.LabelErrorMsg.TabIndex = 30
+		Me.CheckBoxErasePartitionBeforeFlashing.AutoSize = True
+		Me.CheckBoxErasePartitionBeforeFlashing.Checked = Global.UniFlash.My.MySettings.Default.CErasePartitionBeforeFlashing
+		Me.CheckBoxErasePartitionBeforeFlashing.CheckState = System.Windows.Forms.CheckState.Checked
+		Me.CheckBoxErasePartitionBeforeFlashing.Enabled = False
+		Me.CheckBoxErasePartitionBeforeFlashing.Location = New System.Drawing.Point(813, 108)
+		Me.CheckBoxErasePartitionBeforeFlashing.Name = "CheckBoxErasePartitionBeforeFlashing"
+		Me.CheckBoxErasePartitionBeforeFlashing.Size = New System.Drawing.Size(169, 17)
+		Me.CheckBoxErasePartitionBeforeFlashing.TabIndex = 31
+		Me.CheckBoxErasePartitionBeforeFlashing.Text = "Erase Partition before Flashing"
+		Me.CheckBoxErasePartitionBeforeFlashing.UseVisualStyleBackColor = True
+		'
+		'CkAutoReboot
+		'
+		Me.CkAutoReboot.AutoSize = True
+		Me.CkAutoReboot.Checked = Global.UniFlash.My.MySettings.Default.CkAutoRebootValue
+		Me.CkAutoReboot.DataBindings.Add(New System.Windows.Forms.Binding("Checked", Global.UniFlash.My.MySettings.Default, "CkAutoRebootValue", True, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged))
+		Me.CkAutoReboot.Location = New System.Drawing.Point(218, 102)
+		Me.CkAutoReboot.Name = "CkAutoReboot"
+		Me.CkAutoReboot.Size = New System.Drawing.Size(86, 17)
+		Me.CkAutoReboot.TabIndex = 16
+		Me.CkAutoReboot.Text = "Auto Reboot"
+		Me.CkAutoReboot.UseVisualStyleBackColor = True
+		'
+		'TxtPacFirmware
+		'
+		Me.TxtPacFirmware.DataBindings.Add(New System.Windows.Forms.Binding("Text", Global.UniFlash.My.MySettings.Default, "TxtPacFirmwareValue", True, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged))
+		Me.TxtPacFirmware.Location = New System.Drawing.Point(88, 71)
+		Me.TxtPacFirmware.Name = "TxtPacFirmware"
+		Me.TxtPacFirmware.Size = New System.Drawing.Size(328, 20)
+		Me.TxtPacFirmware.TabIndex = 9
+		Me.TxtPacFirmware.Text = Global.UniFlash.My.MySettings.Default.TxtPacFirmwareValue
 		'
 		'Main
 		'
@@ -694,4 +712,5 @@ Partial Class Main
 	Friend WithEvents BtnBrowsePhonePartitionsTable As Button
 	Public WithEvents TextBoxSavePhonePartitionsTable As TextBox
 	Friend WithEvents LabelErrorMsg As Label
+	Friend WithEvents CheckBoxErasePartitionBeforeFlashing As CheckBox
 End Class

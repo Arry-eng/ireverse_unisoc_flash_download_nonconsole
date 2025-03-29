@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<Partitions>
+<Partition id="l_fixnv1" size="1M"/>
+<Partition id="prodnv" size="5M"/>
+<Partition id="usbmsc" size="1024M"/>
+<Partition id="splloader" size="1M"/>
+<Partition id="l_modem" size="15M"/>
+<Partition id="l_ldsp" size="3M"/>
+<Partition id="l_gdsp" size="3M"/>
+<Partition id="pm_sys" size="1M"/>
+<Partition id="wcnmodem" size="10M"/>
+<Partition id="boot" size="20M"/>
+<Partition id="recovery" size="20M"/>
+<Partition id="system" size="1000M"/>
+<Partition id="persist" size="2M"/>
+<Partition id="sysinfo" size="6M"/>
+<Partition id="userdata" size="0xFFFFFFFF"/>
+<Partition id="logo" size="1M"/>
+<Partition id="fbootlogo" size="1M"/>
+<Partition id="cache" size="150M"/>
+<Partition id="uboot" size="1M"/>
+<Partition id="fbootlogo3" size="1M"/>
+<Partition id="fbootlogo4" size="1M"/>
+<Partition id="fbootlogo5" size="1M"/>
+</Partitions>

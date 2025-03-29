@@ -45,5 +45,26 @@ UniFlash
  <exception cref="T:System.InvalidOperationException">Thrown when the LabelErrorMsg control is not initialized</exception>
  <exception cref="T:System.Exception">Thrown when an unknown error occurs</exception>
 </member>
+<member name="M:UniFlash.Main.GetValidFilePath(System.String)">
+ <summary>
+ Checks if the entered file name is valid and corrects it if necessary. Returns the full path of the file.
+ </summary>
+ <param name="fileName">The file name to check</param>
+ <returns>The full path of the file</returns>
+ <remarks>Requires the file name to be at least 5 characters long</remarks>
+ <exception cref="T:System.Exception">Thrown when an unknown error occurs</exception>
+</member>
+<member name="M:UniFlash.Main.ReplaceInputStringWithCharsFound(System.String@,System.Char[],System.String)">
+ <summary>
+ Replaces characters found in the input string with the replacement character. Returns the inputString as reference and the replaced characters as a string
+ </summary>
+ <param name="referenceStringToModify">The input string to modify, passed as a reference</param>
+ <param name="charsToReplace">The characters to replace</param>
+ <param name="replacementChar">The replacement character</param>
+ <returns>The replaced characters as a string</returns>
+ <remarks>Requires the referenceStringToModify to be passed by reference</remarks>
+ <exception cref="T:System.ArgumentNullException">Thrown when the referenceStringToModify is empty or Nothing</exception>
+ <exception cref="T:System.Exception">Thrown when an unknown error occurs</exception>
+</member>
 </members>
 </doc>

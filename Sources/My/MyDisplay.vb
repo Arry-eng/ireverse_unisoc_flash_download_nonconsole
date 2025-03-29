@@ -1,19 +1,21 @@
 ﻿Module MyDisplay
     Public Sub RichLogs(msg As String, colour As Color, isBold As Boolean, Optional NextLine As Boolean = False)
         Main.SharedUI.Logs.Invoke(Sub()
-                                      Main.SharedUI.Logs.SelectionStart = Main.SharedUI.Logs.Text.Length
-                                      Dim selectionColor As Color = Main.SharedUI.Logs.SelectionColor
-                                      Main.SharedUI.Logs.SelectionColor = colour
-                                      If isBold Then
-                                          Main.SharedUI.Logs.SelectionFont = New Font(Main.SharedUI.Logs.Font, FontStyle.Bold)
-                                      Else
-                                          Main.SharedUI.Logs.SelectionFont = New Font(Main.SharedUI.Logs.Font, FontStyle.Regular)
-                                      End If
-                                      Main.SharedUI.Logs.AppendText(msg)
-                                      Main.SharedUI.Logs.SelectionColor = selectionColor
-                                      If NextLine Then
-                                          If Main.SharedUI.Logs.TextLength > 0 Then
-                                              Main.SharedUI.Logs.AppendText(vbCrLf)
+                                      If uni_worker.isLogOn Then
+                                          Main.SharedUI.Logs.SelectionStart = Main.SharedUI.Logs.Text.Length
+                                          Dim selectionColor As Color = Main.SharedUI.Logs.SelectionColor
+                                          Main.SharedUI.Logs.SelectionColor = colour
+                                          If isBold Then
+                                              Main.SharedUI.Logs.SelectionFont = New Font(Main.SharedUI.Logs.Font, FontStyle.Bold)
+                                          Else
+                                              Main.SharedUI.Logs.SelectionFont = New Font(Main.SharedUI.Logs.Font, FontStyle.Regular)
+                                          End If
+                                          Main.SharedUI.Logs.AppendText(msg)
+                                          Main.SharedUI.Logs.SelectionColor = selectionColor
+                                          If NextLine Then
+                                              If Main.SharedUI.Logs.TextLength > 0 Then
+                                                  Main.SharedUI.Logs.AppendText(vbCrLf)
+                                              End If
                                           End If
                                       End If
                                   End Sub)
@@ -32,7 +34,7 @@
 
                                                For i As Integer = 0 To WaktuCari
 
-                                                   Delay(1)
+                                                   Delay(10)
 
                                                    If Main.SharedUI.ComboPort.Text.Contains("SPRD") Then
                                                        RichLogs("Found", Color.Lime, True, True)

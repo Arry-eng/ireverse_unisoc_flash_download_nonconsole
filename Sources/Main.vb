@@ -2,6 +2,7 @@
 Imports System.Runtime.InteropServices
 Imports UniFlash.USBFastConnect
 
+
 Public Class Main
 
 #Region "Disable Sleep"
@@ -33,6 +34,7 @@ Public Class Main
 	Private flashHandler As Action(Of Control)
 
 	Public Sub New()
+		SetupDebugLog()
 		InitializeComponent()
 		SharedUI = Me
 		getcomInfo()
@@ -43,6 +45,21 @@ Public Class Main
 		AddHandler ReceiverDataWorker.RunWorkerCompleted, AddressOf ReceiverDataWorker_RunWorkerCompleted
 		Console.WriteLine()
 
+	End Sub
+
+	Private Sub SetupDebugLog()
+		Dim logFilePath As String = "console.log" ' Specify your desired log file path
+		Dim message = "Starting debug at:".Append(DateAndTime.Now.ToShortTimeString())
+#If DEBUG Then
+		Console.WriteLine("Redirecting all Console output to the current log file: " & logFilePath)
+		' Create an instance of the buffered file writer
+		Dim bufferedWriter As New BufferedFileWriter(logFilePath)
+
+		message.appendLine("Redirecting all Console output to the current log file")
+		' Redirect Console.Out to the buffered writer
+		Console.SetOut(bufferedWriter)
+#End If
+		Console.WriteLine(message)
 	End Sub
 
 	' Code for the flash of an error message at bottom of the screen in the LabelErrorMsg control
@@ -70,20 +87,21 @@ Public Class Main
 		flashHandler = handler
 		flashControl = control
 
-		If flashTimer IsNot Nothing Then
+		If flashTimer Is Nothing Then
 			' Initialize the Timer if it hasn't been created yet
 			flashTimer = New Timer()
 			AddHandler flashTimer.Tick, AddressOf FlashTimer_Tick
-			flashTimer.Interval = flashInterval
 		End If
 		'' flashTimer should not be Nothing at this point
-		Debug.Assert(flashTimer IsNot Nothing, "ERROR: Timer object \'flashTime\' Not initialized")
+		Debug.Assert(flashTimer IsNot Nothing, "ERROR: Timer object 'flashTime' Not initialized")
 		' Set the timer interval
 		flashTimer.Interval = flashInterval
 
 		' Reset the elapsed time and start the timer
 		flashElapsed = 0
-		flashTimer.Start()
+		If Not (flashTimer.Enabled) Then
+			flashTimer.Start()
+		End If
 	End Sub
 	''' <summary>
 	''' Flashes an error message in the LabelErrorMsg control
@@ -93,20 +111,21 @@ Public Class Main
 	''' <exception cref="ArgumentNullException">Thrown when the error message is empty or Nothing</exception>
 	''' <exception cref="InvalidOperationException">Thrown when the LabelErrorMsg control is not initialized</exception>
 	''' <exception cref="Exception">Thrown when an unknown error occurs</exception>
-	Private Sub FlashErrorMsg(errorMessage As String)
+	Protected Friend Sub FlashErrorMsg(errorMessage As String)
 		'' Check if the LabelErrorMsg control is Nothing
-		Debug.Assert(UniFlash.Main.SharedUI.LabelErrorMsg IsNot Nothing, "ERROR: LabelErrorMsg control is Nothing")
+		''Debug.Assert(UniFlash.Main.SharedUI.LabelErrorMsg IsNot Nothing, "ERROR: LabelErrorMsg control is Nothing")
 		''  Check if the error message is empty
 		Debug.Assert(Not String.IsNullOrEmpty(errorMessage), "ERROR: Error message is empty")
+		If (LabelErrorMsg IsNot Nothing) Then
+			'' Set the error message in the LabelErrorMsg control
+			LabelErrorMsg.Text = errorMessage
+			Dim handler As Action(Of Control) = AddressOf ToggleControlColor
+			'' Check if the handler is Nothing
+			Debug.Assert(handler IsNot Nothing, "ERROR: ToggleControlColor is Nothing")
 
-		'' Set the error message in the LabelErrorMsg control
-		LabelErrorMsg.Text = errorMessage
-		Dim handler As Action(Of Control) = AddressOf ToggleControlColor
-		'' Check if the handler is Nothing
-		Debug.Assert(handler IsNot Nothing, "ERROR: ToggleControlColor is Nothing")
-
-		'' Flash the error message in the LabelErrorMsg control
-		FlashText(500, handler, LabelErrorMsg)
+			'' Flash the error message in the LabelErrorMsg control
+			FlashText(500, handler, LabelErrorMsg)
+		End If
 	End Sub
 
 	Private Sub ToggleControlColor(control As Control)
@@ -116,6 +135,7 @@ Public Class Main
 		Else
 			control.ForeColor = Color.Red
 		End If
+		' StopAfterFlashDuration()
 	End Sub
 	Private Sub FlashTimer_Tick(sender As Object, e As EventArgs)
 		' Call the handler function to update the control
@@ -125,9 +145,14 @@ Public Class Main
 		flashElapsed += flashTimer.Interval
 
 		' Stop the timer after the duration has elapsed
+		StopAfterFlashDuration()
+	End Sub
+	Private Sub StopAfterFlashDuration()
 		If flashElapsed >= flashDuration Then
-			flashTimer.Stop()
-			flashControl.ResetText() ' Reset to default color
+			If (flashTimer.Enabled) Then
+				flashTimer.Stop()
+			End If
+			flashControl.ForeColor = Color.Black ' Reset to default color
 		End If
 	End Sub
 #End Region
@@ -135,11 +160,16 @@ Public Class Main
 	Private Sub Main_Closing() Handles MyBase.FormClosing
 		''Stop the timer if it is running and dispose it
 		If flashTimer IsNot Nothing Then
-			flashTimer.Stop()
+			If (flashTimer.Enabled) Then
+				flashTimer.Stop()
+			End If
 			flashTimer.Dispose()
 		End If
-
+		DiagClose() ''Arry-eng Test Let's now close the phone handle
 		AllowSleep()
+	End Sub
+	Protected Friend Sub Uncheck_AutoReboot()
+		CkAutoReboot.CheckState = CheckState.Unchecked
 	End Sub
 
 	Private Sub Logs_TextChanged(sender As Object, e As EventArgs) Handles Logs.TextChanged
@@ -158,9 +188,13 @@ Public Class Main
 		If CkFDLLoaded.Checked Then
 			BtnStart.Text = "Flash"
 			WorkerMethod = "Flash"
+			SharedUI.CheckBoxErasePartitionBeforeFlashing.Enabled = True
+			BtnSavePhonePartitionsTable.Enabled = True
 		Else
 			BtnStart.Text = "Download"
 			WorkerMethod = "Download"
+			SharedUI.CheckBoxErasePartitionBeforeFlashing.Enabled = False
+			BtnSavePhonePartitionsTable.Enabled = False
 		End If
 	End Sub
 	Private Sub CkPartition_CheckedChanged(sender As Object, e As EventArgs) Handles CkPartition.CheckedChanged
@@ -288,6 +322,7 @@ Public Class Main
 
 		End If
 	End Sub
+
 	Private Sub BtnErase_Click(sender As Object, e As EventArgs) Handles BtnErase.Click
 		'set_chksum_type("add")
 		'send_read("a", "20M")
@@ -322,6 +357,7 @@ Public Class Main
 		End If
 
 	End Sub
+
 	Private Function GenerateStringXML() As String 'returns StringXML As String
 
 		Dim PartitionsXML As String = ""
@@ -347,11 +383,15 @@ Public Class Main
 		PartitionsXML = String.Concat(PartitionsXML, "</Partitions>")
 		Return PartitionsXML
 	End Function
+
 	Private Sub BtnPACFirmware_Click(sender As Object, e As EventArgs) Handles BtnPACFirmware.Click
-		If Not UnisocWorker.IsBusy Then
-			Dim filename As String
-			filename = GetFileNameFromBrowseDialog("Select PAC Firmware", "PAC Firmware |*.pac* ")
-			If (filename.Length) Then
+		If UnisocWorker.IsBusy Then 'If the worker is busy, do nothing
+			FlashErrorMsg("INFO: Please wait for the current operation to complete.")
+		Else
+			Dim filename As String = GetFileNameFromBrowseDialog("Select PAC Firmware", "PAC Firmware |*.pac* ", TxtPacFirmware.Text)
+			If (String.IsNullOrWhiteSpace(filename)) Then
+				FlashErrorMsg("ERROR: Please select a valid PAC Firmware file.")
+			Else
 				DGVClear()
 				RtbClear()
 				ProcessBar1(0)
@@ -361,16 +401,25 @@ Public Class Main
 				UnisocWorker.RunWorkerAsync()
 				UnisocWorker.Dispose()
 			End If
-
 		End If
 	End Sub
 
 	Private Sub BtnSavePACPartitionsTable_Click(sender As Object, e As EventArgs) Handles BtnSavePACPartitionsTable.Click
-		If Not UnisocWorker.IsBusy AndAlso TextBoxSaveToPartitionsTableFile.Text.Length > 5 Then
+		Dim filename As String = GetValidFilePath(TextBoxSaveToPartitionsTableFile.Text.Trim())
+		filename = IIf(String.IsNullOrWhiteSpace(filename),
+					   BrowseFileName(filename, PACPartitionsTableXMLFile), filename)
+
+		If String.IsNullOrWhiteSpace(filename) Then
+			FlashErrorMsg("ERROR: Please select a valid file for saving PACPartitionsTable information.")
+		Else
+			'' TextBoxSaveToPartitionsTableFile should always have a valid file name here.
+			Debug.Assert(Not String.IsNullOrEmpty(GetValidFilePath(filename)))
 			'Copy the file name from the TextBox - User is allowed to edit it as well as select a file through brose dialog
-			uni_worker.PACPartitionsTableXMLFile = TextBoxSaveToPartitionsTableFile.Text
+			uni_worker.PACPartitionsTableXMLFile = filename
+			TextBoxSaveToPartitionsTableFile.Text = filename
+
 			''DGVClear()
-			''RtbClear()
+			'RtbClear()
 			ProcessBar1(0)
 			WorkerMethod = "Save PACPartitionsTable"
 			uni_worker.StringXML = GenerateStringXML()
@@ -379,12 +428,71 @@ Public Class Main
 		End If
 	End Sub
 
+	Private Sub BtnSaveToPartitionsTableFile_Click(sender As Object, e As EventArgs) Handles BtnSaveToPartitionsTableFile.Click
+		PACPartitionsTableXMLFile = FetchFileName(TextBoxSaveToPartitionsTableFile.Text, PACPartitionsTableXMLFile)
+		TextBoxSaveToPartitionsTableFile.Text = PACPartitionsTableXMLFile
+	End Sub
+
+	Private Sub BtnSavePhonePartitionsTable_Click(sender As Object, e As EventArgs) Handles BtnSavePhonePartitionsTable.Click
+		If UnisocWorker.IsBusy Then 'If the worker is busy, do nothing
+			FlashErrorMsg("INFO: Please wait for the current operation to complete.")
+		Else
+			'' Phone should always be connected here.
+			Debug.Assert(CkFDLLoaded.Checked)
+			Dim filename As String = GetValidFilePath(TextBoxSavePhonePartitionsTable.Text.Trim())
+			filename = IIf(String.IsNullOrWhiteSpace(filename),
+						   BrowseFileName(filename, PhonePartitionsTableXMLFile), filename)
+
+			If String.IsNullOrWhiteSpace(filename) Then 'If the filename is empty, show an error message
+				FlashErrorMsg("ERROR: Please select a valid file for saving PhonePartitionsTable information.")
+			Else
+				'' TextBoxSavePhonePartitionsTable should always have a valid file name here.
+				Debug.Assert(Not String.IsNullOrEmpty(GetValidFilePath(filename)))
+				'Copy the file name from the TextBox - User is allowed to edit it as well as select a file through brose dialog
+				uni_worker.PhonePartitionsTableXMLFile = filename
+				TextBoxSavePhonePartitionsTable.Text = filename
+
+				DGVClear()
+				RtbClear()
+				ProcessBar1(0)
+				WorkerMethod = "Save PhonePartitionsTable"
+				''uni_worker.StringXML = GenerateStringXML()
+				UnisocWorker.RunWorkerAsync()
+				UnisocWorker.Dispose()
+			End If
+		End If
+	End Sub
+
+	Private Sub BtnBrowsePhonePartitionsTable_Click(sender As Object, e As EventArgs) Handles BtnBrowsePhonePartitionsTable.Click
+		PhonePartitionsTableXMLFile = FetchFileName(TextBoxSavePhonePartitionsTable.Text, PhonePartitionsTableXMLFile)
+		TextBoxSavePhonePartitionsTable.Text = PhonePartitionsTableXMLFile
+	End Sub
+
+#Region "Browse to a valid filename"
+	Protected Friend Function FetchFileName(tbText As String, savedName As String) As String
+		Dim filename As String = BrowseFileName(tbText, savedName)
+		Return IIf(String.IsNullOrWhiteSpace(filename),
+				   savedName, filename)
+	End Function
+
+	Protected Friend Function BrowseFileName(tbText As String, savedName As String) As String
+		Return GetFileNameFromBrowseDialog("Select path to XML file to save PhonePartitionsTable",
+												"XML Files (*.xml)|*.xml",
+												CheckFileName(tbText, savedName))
+	End Function
+
+	Private Function CheckFileName(tbText As String, savedName As String) As String
+		Return IIf(Not String.IsNullOrWhiteSpace(tbText) AndAlso tbText.Length > 5,
+						tbText, GetValidFilePath(savedName))
+	End Function
+
 	'Opens a Dialog box for the user to browse and select a file. Return filename with full path on selection or empty string if canceled.
-	Private Function GetFileNameFromBrowseDialog(Optional title As String = "Select path to the file", Optional filter As String = "All Files (*.*)|*.*") As String
+	Private Function GetFileNameFromBrowseDialog(Optional title As String = "Select path to the file", Optional filter As String = "All Files (*.*)|*.*", Optional initialDirectory As String = "") As String
+		If String.IsNullOrWhiteSpace(initialDirectory) Then initialDirectory = Environment.CurrentDirectory
 		Dim openFileDialog As New OpenFileDialog() With
 				{
 				.Title = "",
-				.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Recent),
+				.InitialDirectory = initialDirectory,
 				.FileName = "*.*",
 				.Filter = filter,
 				.FilterIndex = 2,
@@ -393,63 +501,49 @@ Public Class Main
 		If openFileDialog.ShowDialog() = DialogResult.OK Then
 			Return openFileDialog.FileName
 		End If
-		Return "" '"OK" not pressed. Return empty string. 
+		Return String.Empty 'Canceled! Return empty string. 
+	End Function
+#End Region
+
+	'Private Sub TextBoxSaveToPartitionsTableFile_TextChanged(sender As Object, e As EventArgs) Handles TextBoxSaveToPartitionsTableFile.TextChanged
+	'	Dim filename As String = TextBoxSaveToPartitionsTableFile.Text.Trim()
+	'	filename = GetValidFilePath(filename)
+	'	If Not String.IsNullOrEmpty(filename) Then
+	'		PACPartitionsTableXMLFile = filename
+	'	End If
+	'	TextBoxSaveToPartitionsTableFile.Text = PACPartitionsTableXMLFile
+	'End Sub
+
+	'Private Sub TextBoxSavePhonePartitionsTable_TextChanged(sender As Object, e As EventArgs) Handles TextBoxSavePhonePartitionsTable.TextChanged
+	'	''Dim txtBox As TextBox = DirectCast(sender, TextBox)
+	'	''If IsActiveControl(sender) Then
+	'	Dim filename As String = TextBoxSavePhonePartitionsTable.Text.Trim()
+	'		FlashErrorMsg("New File Name: '" & filename & "'")
+	'		filename = GetValidFilePath(filename)
+	'	If Not String.IsNullOrEmpty(filename) Then
+	'		PhonePartitionsTableXMLFile = filename
+	'		If Not (filename.Equals(TextBoxSavePhonePartitionsTable.Text)) Then
+	'			TextBoxSavePhonePartitionsTable.Text = filename
+	'		End If
+	'	End If
+	'End Sub
+
+	Protected Friend Function IsActiveControl(obj As Object) As Boolean
+		Debug.Assert(obj IsNot Nothing)
+		Return DirectCast(obj, TextBox).ContainsFocus
 	End Function
 
-	Private Sub BtnSaveToPartitionsTableFile_Click(sender As Object, e As EventArgs) Handles BtnSaveToPartitionsTableFile.Click
-		If Not UnisocWorker.IsBusy Then
-			Dim filename As String
-			filename = GetFileNameFromBrowseDialog("Select path to XML file to save PACPartitionsTable", "XML Files (*.xml)|*.xml")
-			If (filename.Length) Then
-				TextBoxSaveToPartitionsTableFile.Text = filename
-				PACPartitionsTableXMLFile = filename
-			End If
-		End If
-	End Sub
-
-	Private Sub BtnSavePhonePartitionsTable_Click(sender As Object, e As EventArgs) Handles BtnSavePhonePartitionsTable.Click
-		If Not UnisocWorker.IsBusy Then
-			Dim filename As String
-			filename = GetFileNameFromBrowseDialog("Select path to XML file to save PACPartitionsTable", "XML Files (*.xml)|*.xml")
-			If (filename.Length) Then
-				TextBoxSavePhonePartitionsTable.Text = filename
-				PhonePartitionsTableXMLFile = filename
-			End If
-		End If
-	End Sub
-
-	Private Sub BtnBrowsePhonePartitionsTable_Click(sender As Object, e As EventArgs) Handles BtnBrowsePhonePartitionsTable.Click
-		If Not UnisocWorker.IsBusy Then
-			Dim filename As String
-			filename = GetFileNameFromBrowseDialog("Select path to XML file to save PACPartitionsTable", "XML Files (*.xml)|*.xml")
-			If (filename.Length) Then
-				TextBoxSavePhonePartitionsTable.Text = filename
-				PhonePartitionsTableXMLFile = filename
-			End If
-		End If
-	End Sub
-
-	Private Sub TextBoxSaveToPartitionsTableFile_TextChanged(sender As Object, e As EventArgs) Handles TextBoxSaveToPartitionsTableFile.TextChanged
-		Dim filename As String = TextBoxSaveToPartitionsTableFile.Text.Trim()
-		filename = GetValidFilePath(filename)
-		If Not String.IsNullOrEmpty(filename) Then
-			PACPartitionsTableXMLFile = filename
-		End If
-		TextBoxSaveToPartitionsTableFile.Text = PACPartitionsTableXMLFile
-	End Sub
-
-	Private Sub TextBoxSavePhonePartitionsTable_TextChanged(sender As Object, e As EventArgs) Handles TextBoxSavePhonePartitionsTable.TextChanged
-		Dim filename As String = TextBoxSavePhonePartitionsTable.Text.Trim()
-		filename = GetValidFilePath(filename)
-		If Not String.IsNullOrEmpty(filename) Then
-			PhonePartitionsTableXMLFile = filename
-		End If
-		TextBoxSavePhonePartitionsTable.Text = PhonePartitionsTableXMLFile
-	End Sub
 #Region "CheckAndCorrectFilePath"
+	''' <summary>
+	''' Checks if the entered file name is valid and corrects it if necessary. Returns the full path of the file.
+	''' </summary>
+	''' <param name="fileName">The file name to check</param>
+	''' <returns>The full path of the file</returns>
+	''' <remarks>Requires the file name to be at least 5 characters long</remarks>
+	''' <exception cref="Exception">Thrown when an unknown error occurs</exception>
 	Protected Friend Function GetValidFilePath(fileName As String) As String
 		Dim returnFileName As String = String.Empty
-		If fileName.Length > 5 Then ''  Minimum length of a valid file name x.xxx
+		If Not String.IsNullOrEmpty(fileName) AndAlso fileName.Length > 5 Then ''  Minimum length of a valid file name x.xxx
 			Try
 				' Create a FileInfo object to test and check the filename
 				Dim fileInfo As New FileInfo(fileName)
@@ -461,17 +555,17 @@ Public Class Main
 					'' Note: fileName is passed by reference and will be modified to replace invalid characters with '_'
 					Dim replacedChars As String = ReplaceInputStringWithCharsFound(fileName, invalidChars, "_")
 					If Not String.IsNullOrEmpty(replacedChars) Then
-						FlashErrorMsg("These invalid characters: \'" & replacedChars & "\' found in file name. Replaced with '_'.")
+						FlashErrorMsg("These invalid characters: '" & replacedChars & "' found in file name. Replaced with '_'.")
 						returnFileName = fileName
 					End If
 				Else
-					FlashErrorMsg("ERROR: Please check if the entered filename: \"" & fileName & " \ " is invalid.")
+					FlashErrorMsg("ERROR: Please check if the entered filename: '" & fileName & "' Is invalid.")
 				End If
 				' Handle exceptions for invalid format
 				Console.WriteLine("Error: " & ex.Message)
 			End Try
 		Else
-			FlashErrorMsg("ERROR: Please check if the entered filename: \"" & fileName & " \ " is invalid.")
+			FlashErrorMsg("ERROR Please check if the entered filename '" & fileName & "' is invalid.")
 		End If
 		Return returnFileName
 	End Function
@@ -497,7 +591,7 @@ Public Class Main
 
 		Return replacedChars
 	End Function
-#End Region
 
+#End Region
 
 End Class
