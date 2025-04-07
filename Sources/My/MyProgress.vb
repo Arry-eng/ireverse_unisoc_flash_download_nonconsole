@@ -1,4 +1,6 @@
-﻿Module MyProgress
+﻿Imports System.Threading
+
+Module MyProgress
     Public Watch As Stopwatch
     Public WaktuCari As Integer = 0
     Private DoubleBytes As Double
@@ -25,12 +27,19 @@
         End If
     End Sub
     Public Sub Delay(dblSecs As Double)
-        Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(0.0000115740740740741)
-        Dim dateTime As Date = Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(0.0000115740740740741)
-        Dim dateTime1 As Date = dateTime.AddSeconds(dblSecs)
-        While Date.Compare(Microsoft.VisualBasic.DateAndTime.Now, dateTime1) <= 0
+        'Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(0.0000115740740740741) 'Test Arvind Commented as seemed un-necessary
+        'Dim dateTime As Date = Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(0.0000115740740740741) 'Test Arvind Commented as seemed un-necessary
+        'Dim dateTime1 As Date = dateTime.AddSeconds(dblSecs)'Test Arvind Commented as seemed un-necessary
+#If (DEBUG) Then
+        dblSecs = dblSecs / 1000 'Test Arvind reduced wait by 1/10000 for feature phones as they respond immediately
+
+        Dim dateTime1 As Date = Microsoft.VisualBasic.DateAndTime.Now.AddSeconds(dblSecs)
+        Do
             Windows.Forms.Application.DoEvents()
-        End While
+        Loop While Date.Compare(Microsoft.VisualBasic.DateAndTime.Now, dateTime1) <= 0
+#Else
+        Thread.Sleep(dblSecs)
+#End If
     End Sub
 
     Public Function GetButtonText(sender As Object) As String

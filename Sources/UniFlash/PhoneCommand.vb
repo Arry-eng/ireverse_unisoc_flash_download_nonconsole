@@ -1,12 +1,25 @@
 ﻿Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography.X509Certificates
 Module PhoneCommandAPI
 #Region "PhoneCommand"
 
-    Private Const LibPhoneCommand As String = "DeviceApi\PhoneCommand.dll"
+
+    '<DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)>
+    '<DllImport("C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\DeviceApi\PhoneCommand.dll", EntryPoint:="SP_CreatePhone", CallingConvention:=CallingConvention.StdCall)>
+    'Public Function SP_CreatePhone(pLogUtil As IntPtr) As SP_HANDLE
+    'End Function
+
+
+    Private Const LibPhoneCommand As String = "C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\DeviceApi\PhoneCommand.dll"
+    ''Private Const LibPhoneCommand As String = "C:\Python\work\repos\Arry-eng\ireverse_unisoc_flash_download_nonconsole\Sources\DeviceApi\PhoneCommand.dll"
 
     <DllImport(LibPhoneCommand, CallingConvention:=CallingConvention.Cdecl)>
     Public Function SP_CreatePhone(pLogUtil As IntPtr) As SP_HANDLE
     End Function
+
+    '<DllImport("PhoneCommand.dll", EntryPoint:="SP_CreatePhone", CallingConvention:=CallingConvention.StdCall)>
+    'Public Function SP_CreatePhone(pLogUtil As IntPtr) As SP_HANDLE
+    'End Function
 
     <DllImport(LibPhoneCommand, CallingConvention:=CallingConvention.Cdecl)>
     Public Function SP_BeginPhoneTest(hDiagPhone As SP_HANDLE, ByRef pOpenArgument As CHANNEL_ATTRIBUTE) As Integer

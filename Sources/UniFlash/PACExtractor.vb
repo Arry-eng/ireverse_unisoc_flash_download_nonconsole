@@ -283,7 +283,7 @@ Public Class PACExtractor
                         Main.SharedUI.TxtFDL2.Invoke(CType(Sub() Main.SharedUI.TxtFDL2.Text = outputDir & "\" & fileName, Action))
                     End If
 
-                    If Not fileName.Contains(".xml") AndAlso Not partitionName.Contains("FDL") AndAlso Not partitionName.Contains("NV_") Then
+                    If Not fileName.Contains(".xml") AndAlso Not partitionName.Contains("FDL") Then '' AndAlso Not partitionName.Contains("NV_") Then /Test Arvind Last condition of NV_ removed
                         Main.SharedUI.DataView.Invoke(CType(Sub() Main.SharedUI.DataView.Rows.Add(
                                                            True,
                                                            partitionName,
